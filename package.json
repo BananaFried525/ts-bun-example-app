@@ -1,0 +1,21 @@
+{
+    "name": "ts-bun-example-app",
+    "module": "src/server.ts",
+    "type": "module",
+    "scripts": {
+        "build": "bun build src/server.ts --outdir ./dist",
+        "start": "bun run src/server.ts",
+        "dev": "bun run --watch src/server.ts "
+    },
+    "devDependencies": {
+        "@types/bun": "latest",
+        "@types/express": "^5.0.0"
+    },
+    "peerDependencies": {
+        "typescript": "^5.0.0"
+    },
+    "dependencies": {
+        "express": "^4.21.2",
+        "winston": "^3.17.0"
+    }
+}
