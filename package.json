@@ -5,16 +5,18 @@
     "scripts": {
         "build": "bun build src/server.ts --outdir ./dist",
         "start": "bun run src/server.ts",
-        "dev": "bun run --watch src/server.ts "
+        "dev": "bun run --watch src/server.ts"
     },
     "devDependencies": {
         "@types/bun": "latest",
-        "@types/express": "^5.0.0"
+        "@types/express": "^5.0.0",
+        "drizzle-kit": "^0.30.2"
     },
     "peerDependencies": {
         "typescript": "^5.0.0"
     },
     "dependencies": {
+        "drizzle-orm": "^0.38.4",
         "express": "^4.21.2",
         "winston": "^3.17.0"
     }
