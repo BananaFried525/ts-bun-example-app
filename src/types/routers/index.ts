@@ -7,6 +7,13 @@ export type Route = {
   handler: Adapter;
 }
 
+export type IResponse = {
+  statusCode: number;
+  statusMessage: string;
+  data?: any;
+  errorMessage?: string;
+}
+
 export type Middleware = (req: Request, res: Response, next: NextFunction) => Promise<void>;
 
 export type Adapter = (req: Request, res: Response, next: NextFunction) => void;

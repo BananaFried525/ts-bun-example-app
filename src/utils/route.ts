@@ -1,7 +1,8 @@
 import fs from 'fs'
 import path from 'path'
-import type { Adapter, HTTPController, Route } from '../types/routers'
+import type { Adapter, HTTPController, IResponse, Route } from '../types/routers'
 import { Router } from 'express'
+import { unhandledError } from './error'
 
 export const loadRoutesPath = (dirPath: string): string[] => {
   const endpointPath: string[] = []
@@ -23,19 +24,22 @@ export const loadRoutesPath = (dirPath: string): string[] => {
   return endpointPath
 }
 
+// TODO: handle unhandled errors
 export const createAdapter = <T>(controller: HTTPController<T>, options?: any): Adapter => {
   return async (req, res, next) => {
     try {
       const result = await controller(req)
-  
-      res.status(200).json({
+
+      const response: IResponse = {
         statusCode: 200,
         statusMessage: 'Success',
         data: result,
-      })
+      }
+  
+      res.status(200).json(response)
       return
     } catch (error) {
-      next(error)
+      unhandledError(error, res)
     }
   }
 }
@@ -62,4 +66,15 @@ export const loadEndpoints = (endpointPaths: string[]): Router => {
   })
 
   return router
+}
+
+export const notFoundEndpoint = (req: any, res: any, next: any) => {
+  const response: IResponse = {
+    statusCode: 404,
+    statusMessage: 'Not Found',
+    data: null,
+    errorMessage: 'Route not found',
+  }
+
+  res.status(404).json(response)
 }

@@ -3,7 +3,7 @@ import { exampleAdapter } from '../../adapters/example.adapter';
 
 const route: Route[] = [
   {
-    path: '/example',
+    path: 'example',
     method: 'get',
     middleware: [],
     handler: exampleAdapter
