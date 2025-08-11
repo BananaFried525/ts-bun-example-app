@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ts-bun-example-app-service
+  namespace: develop
+  labels:
+    app: ts-bun-example-app
+spec:
+  type: LoadBalancer  # สำหรับ local testing
+  ports:
+  - port: 8080        # port ที่เข้าถึงจากภายนอก
+    targetPort: 3000  # port ของ container
+    protocol: TCP
+    name: http
+  selector:
+    app: ts-bun-example-app

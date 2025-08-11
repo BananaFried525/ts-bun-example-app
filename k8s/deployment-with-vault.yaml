@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ts-bun-example-app
+  namespace: develop
+  labels:
+    app: ts-bun-example-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ts-bun-example-app
+  template:
+    metadata:
+      labels:
+        app: ts-bun-example-app
+      annotations:
+        # Vault Agent Injector annotations
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "ts-bun-app"
+        vault.hashicorp.com/agent-inject-secret-database: "secret/data/ts-bun-app/database"
+        vault.hashicorp.com/agent-inject-secret-api: "secret/data/ts-bun-app/api"
+        vault.hashicorp.com/agent-inject-template-database: |
+          {{- with secret "secret/data/ts-bun-app/database" -}}
+          export DATABASE_URL="{{ .Data.data.url }}"
+          export DB_PASSWORD="{{ .Data.data.password }}"
+          {{- end -}}
+        vault.hashicorp.com/agent-inject-template-api: |
+          {{- with secret "secret/data/ts-bun-app/api" -}}
+          export API_KEY="{{ .Data.data.key }}"
+          export JWT_SECRET="{{ .Data.data.jwt_secret }}"
+          {{- end -}}
+    spec:
+      serviceAccountName: ts-bun-app-vault
+      containers:
+      - name: ts-bun-example-app
+        image: ts-bun-example-app:v0.0.3
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 3000
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3000"
+        # Vault secrets จะถูก mount ที่ /vault/secrets/
+        command:
+        - /bin/sh
+        - -c
+        - |
+          # Source secrets from Vault
+          source /vault/secrets/database
+          source /vault/secrets/api
+          # Start the application
+          bun run src/server.ts
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /v1/example/test
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /v1/example/test
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+# ServiceAccount สำหรับ Vault authentication
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ts-bun-app-vault
+  namespace: develop
