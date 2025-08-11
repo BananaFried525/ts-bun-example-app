@@ -1,8 +1,9 @@
 import type { Request, Response, NextFunction } from "express";
+type HTTP_METHOD = 'get' | 'post' | 'put' | 'delete' | 'patch'
 
 export type Route = {
   path: string;
-  method: 'get' | 'post' | 'put' | 'delete' | 'patch';
+  method: HTTP_METHOD
   middleware: Middleware[];
   handler: Adapter;
 }
