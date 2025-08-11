@@ -3,6 +3,8 @@ import path from 'path'
 import type { Adapter, HTTPController, IResponse, Route } from '../types/routers'
 import { Router } from 'express'
 import { unhandledError } from './error'
+import rateLimit, { type RateLimitRequestHandler } from 'express-rate-limit'
+import logger from './logger'
 
 export const loadRoutesPath = (dirPath: string): string[] => {
   const endpointPath: string[] = []
@@ -35,7 +37,7 @@ export const createAdapter = <T>(controller: HTTPController<T>, options?: any): 
         statusMessage: 'Success',
         data: result,
       }
-  
+
       res.status(200).json(response)
       return
     } catch (error) {
@@ -48,7 +50,14 @@ export const loadAppRoutes = (routes: Route[]): Router => {
   const router = Router()
 
   routes.forEach((route) => {
-    router[route.method](route.path, ...route.middleware, route.handler)
+    // Apply middlewares if any
+    const middlewares = route.middleware || []
+    
+    router[route.method](`/${route.path}`, ...middlewares, route.handler)
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`Loaded service: [${route.method.toUpperCase()}] /${route.path}`)
+    }
   })
 
   return router
@@ -63,6 +72,14 @@ export const loadEndpoints = (endpointPaths: string[]): Router => {
     const _router = loadAppRoutes(routes)
 
     router.use(`/${endpointPath}`, _router)
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`Loaded route: ${endpointPath}`)
+    }
+  })
+
+  router.get('/health', (req, res) => {
+    res.status(200).json({ message: 'OK' })
   })
 
   return router
@@ -77,4 +94,15 @@ export const notFoundEndpoint = (req: any, res: any, next: any) => {
   }
 
   res.status(404).json(response)
+}
+
+export const setRateLimit = (): RateLimitRequestHandler => {
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  })
+
+  return limiter
 }

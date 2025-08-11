@@ -5,7 +5,8 @@
     "scripts": {
         "build": "bun build src/server.ts --outdir ./dist",
         "start": "bun run src/server.ts",
-        "dev": "bun run --watch src/server.ts"
+        "dev": "bun run --watch src/server.ts",
+        "test": "bun test --coverage"
     },
     "devDependencies": {
         "@types/bun": "latest",
@@ -16,8 +17,10 @@
         "typescript": "^5.0.0"
     },
     "dependencies": {
+        "body-parse": "^0.1.0",
         "drizzle-orm": "^0.38.4",
         "express": "^4.21.2",
+        "express-rate-limit": "^7.5.0",
         "winston": "^3.17.0"
     }
 }
